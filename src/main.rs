@@ -5,6 +5,7 @@ use std::sync::atomic::Ordering::Relaxed;
 use std::thread;
 use std::thread::spawn;
 use std::time::Duration;
+use crate::minimax::eval;
 
 mod game;
 mod minimax;
@@ -41,9 +42,13 @@ fn main() {
         )).collect();
         PRINT_DOTS.store(false, Relaxed);
         println!();
-        rated_options.sort_by(|a, b| f32::total_cmp(&a.1, &b.1));
-        if let Some((option, _)) = rated_options.first() {
-            filler = filler.do_move(*option);
+        let lowest_option = rated_options.iter().min_by(|a, b| f32::total_cmp(&a.1, &b.1));
+        if let Some((_, lowest_rating)) = lowest_option {
+            let lowest_rating = *lowest_rating;
+            rated_options.retain(|(_, rating)| *rating <= lowest_rating);
+        }
+        if let Some(next_filler) = rated_options.into_iter().map(|option| filler.do_move(option.0)).min_by(|f1, f2| f32::total_cmp(&eval(f1), &eval(f2))) {
+            filler = next_filler;
         }
         if filler.is_over() {
             println!("Game over \n{filler}\n{:?}, {:?}", filler.p1, filler.p2);

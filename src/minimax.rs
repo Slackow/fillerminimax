@@ -23,9 +23,11 @@ pub fn minimax(
         .into_iter()
         .map(|option| filler.do_move(option))
         .collect::<Vec<_>>();
-    options.sort_by(|f1, f2| f32::total_cmp(&eval(f1), &eval(f2)));
     if maximizing {
-        options.reverse();
+        options.sort_unstable_by(|f1, f2| f32::total_cmp(&eval(f2), &eval(f1)));
+    } else {
+        options.sort_unstable_by(|f1, f2| f32::total_cmp(&eval(f1), &eval(f2)));
+
     }
     for option in options {
         let eval = minimax(option, depth - 1, alpha, beta);
@@ -42,6 +44,6 @@ pub fn minimax(
     acc_eval
 }
 
-fn eval(filler: &Filler) -> f32 {
+pub fn eval(filler: &Filler) -> f32 {
     (filler.p1.1 as f32) - (filler.p2.1 as f32)
 }
