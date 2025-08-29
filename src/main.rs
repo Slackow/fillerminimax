@@ -1,7 +1,6 @@
 use crate::game::filler;
 use crate::game::filler::{Cell, Filler};
 use crate::minimax::eval;
-use std::error::Error;
 use std::io::{stdin, stdout, BufRead, ErrorKind, Write};
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering::Relaxed;
@@ -70,6 +69,7 @@ fn main() {
         let lowest_option = rated_options.iter().min_by_key(|(_, rating)| rating);
         if let Some(&(_, lowest_rating)) = lowest_option {
             rated_options.retain(|&(_, rating)| rating <= lowest_rating);
+            println!("eval: {lowest_rating}");
         }
         if let Some(next_filler) = rated_options
             .into_iter()
@@ -85,7 +85,7 @@ fn main() {
     }
 }
 
-fn read_board() -> Result<Option<Filler>, Box<dyn Error>> {
+fn read_board() -> Result<Option<Filler>, std::io::Error> {
     let mut vec = Vec::<[Cell; filler::COLS]>::with_capacity(filler::ROWS);
     for row in stdin().lock().lines().take(filler::ROWS) {
         let row = row?;
@@ -94,8 +94,8 @@ fn read_board() -> Result<Option<Filler>, Box<dyn Error>> {
         }
         let row: Vec<Cell> = row
             .chars()
-            .into_iter()
             .filter_map(Cell::from_input)
+            .rev()
             .collect();
         vec.push(row.try_into().map_err(|_| {
             std::io::Error::new(ErrorKind::InvalidData, "Incorrect number of columns")

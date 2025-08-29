@@ -57,12 +57,12 @@ impl Display for Cell {
 
 impl Display for Filler {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "turn {:?}\n", self.turn)?;
+        writeln!(f, "turn {:?}", self.turn)?;
         for row in self.board {
-            for cell in row {
+            for cell in row.iter().rev() {
                 write!(f, "{}", cell)?;
             }
-            write!(f, "\n")?;
+            writeln!(f)?;
         }
         Ok(())
     }
