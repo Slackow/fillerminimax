@@ -1,6 +1,6 @@
 use rand::seq::IteratorRandom;
 use std::collections::VecDeque;
-use std::fmt::{Display};
+use std::fmt::Display;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Filler {
@@ -58,9 +58,9 @@ impl Display for Cell {
 impl Display for Filler {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "turn {:?}\n", self.turn)?;
-        for col in 0..COLS {
-            for row in 0..ROWS {
-                write!(f, "{}", self.board[row][col])?;
+        for row in self.board {
+            for cell in row {
+                write!(f, "{}", cell)?;
             }
             write!(f, "\n")?;
         }
@@ -68,17 +68,33 @@ impl Display for Filler {
     }
 }
 
-pub static CELLS: [Cell; 6] = [
-    Cell::Green,
-    Cell::Blue,
-    Cell::Yellow,
-    Cell::Purple,
-    Cell::Red,
-    Cell::Black,
-];
+pub const ROWS: usize = 7;
+pub const COLS: usize = 8;
 
-const ROWS: usize = 7;
-const COLS: usize = 8;
+impl Cell {
+    pub const CELLS: [Cell; 6] = [
+        Cell::Green,
+        Cell::Blue,
+        Cell::Yellow,
+        Cell::Purple,
+        Cell::Red,
+        Cell::Black,
+    ];
+
+    pub fn from_input(s: char) -> Option<Cell> {
+        Some(match s {
+            'g' => Cell::Green,
+            'b' => Cell::Blue,
+            'y' => Cell::Yellow,
+            'p' => Cell::Purple,
+            'r' => Cell::Red,
+            'l' => Cell::Black,
+            _ => return None,
+        })
+    }
+}
+
+
 
 impl Filler {
     pub fn new() -> Filler {
@@ -96,21 +112,14 @@ impl Filler {
                 if row == ROWS - 1 && col == COLS - 1 {
                     exclude.push(board[0][0]);
                 }
-                board[row][col] = CELLS
+                board[row][col] = Cell::CELLS
                     .into_iter()
                     .filter(|e| !exclude.contains(e))
                     .choose(&mut r)
                     .unwrap();
             }
         }
-        let p1_start = Turn::P1.starting_position();
-        let p2_start = Turn::P2.starting_position();
-        Filler {
-            board,
-            p1: (board[p1_start.0][p1_start.1], 1),
-            p2: (board[p2_start.0][p2_start.1], 1),
-            turn: Turn::P1,
-        }
+        Filler::from(board)
     }
 
     pub fn is_over(&self) -> bool {
@@ -162,8 +171,21 @@ impl Filler {
         }
     }
     pub fn get_options(&self) -> Vec<Cell> {
-        let mut options = CELLS.to_vec();
+        let mut options = Cell::CELLS.to_vec();
         options.retain(|c| ![self.p1.0, self.p2.0].contains(&c));
         options
+    }
+}
+
+impl From<[[Cell; COLS]; ROWS]> for Filler {
+    fn from(board: [[Cell; COLS]; ROWS]) -> Self {
+        let p1_start = Turn::P1.starting_position();
+        let p2_start = Turn::P2.starting_position();
+        Filler {
+            board,
+            p1: (board[p1_start.0][p1_start.1], 1),
+            p2: (board[p2_start.0][p2_start.1], 1),
+            turn: Turn::P1,
+        }
     }
 }
