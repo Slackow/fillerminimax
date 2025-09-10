@@ -15,8 +15,9 @@ fn main() {
     spawn(|| {
         loop {
             if PRINT_DOTS.load(Relaxed) {
-                print!(".");
-                stdout().lock().flush().unwrap_or(());
+                let mut lock = stdout().lock();
+                write!(lock, ".").unwrap_or(());
+                lock.flush().unwrap_or(());
             }
             thread::sleep(Duration::from_secs(1));
         }
